@@ -415,6 +415,7 @@ pedsim_msgs::AgentStates Simulator::getAgentStates()
     // agent_forces.group_repulsion_force = a->getSocialForce();
     // agent_forces.random_force = a->getSocialForce();
 
+    agent_forces.sum_force = VecToMsg(a->getSumForce());
     agent_forces.force = VecToMsg(a->getForce());
 
     state.forces = agent_forces;
@@ -611,20 +612,19 @@ void Simulator::publishPedsimAgents(
 
 void Simulator::onPedsimAgents(pedsim_msgs::AgentFeedbacks agents){
   for(auto agent : agents.agents){
+
     Agent* sceneAgent = SCENE.getAgent(agent.id);
     if(!sceneAgent) continue;
 
-    if(agent.unforce){
-      sceneAgent->overrideForce();
-    }
-    else{
-      sceneAgent->overrideForce(
-        Ped::Tvector(
-          agent.force.x,
-          agent.force.y,
-          agent.force.z
-        )
-      );
-    }
+    sceneAgent->overrideState((AgentStateMachine::AgentState) agent.social_state);
+
+    sceneAgent->overrideForce(
+      Ped::Tvector(
+        agent.force.x,
+        agent.force.y,
+        agent.force.z
+      )
+    );
   }
+    
 }

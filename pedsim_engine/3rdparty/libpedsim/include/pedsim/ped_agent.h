@@ -131,6 +131,8 @@ class LIBEXPORT Tagent {
   double forceFactorObstacle;
   double forceFactorRobot;
 
+  void overrideState(std::string);
+
   void overrideForce();
   void overrideForce(Ped::Tvector pose);
 
@@ -161,6 +163,7 @@ class LIBEXPORT Tagent {
   Ped::Tvector robotforce;
   Ped::Tvector myforce;
   Ped::Tvector keepdistanceforce;
+  Ped::Tvector sumforce;
 
   Ped::Tvector forceOverride;
   bool isForceOverridden = false;

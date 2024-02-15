@@ -25,4 +25,5 @@ geometry_msgs/Vector3 keep_distance_force
 geometry_msgs/Vector3 robot_force
 
 # Total forces
+geometry_msgs/Vector3 sum_force
 geometry_msgs/Vector3 force

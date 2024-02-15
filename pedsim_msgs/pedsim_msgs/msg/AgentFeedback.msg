@@ -1,3 +1,3 @@
 string id
 geometry_msgs/Vector3 force
-bool unforce
+uint8 social_state

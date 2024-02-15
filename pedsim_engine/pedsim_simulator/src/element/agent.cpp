@@ -308,13 +308,19 @@ Ped::Twaypoint* Agent::updateDestination() {
   return currentDestination;
 }
 
+void Agent::overrideState(AgentStateMachine::AgentState state_) {
+  stateMachine->setCurrentState(state_);
+  resumeMovement();
+}
+
 void Agent::updateState() {
   // check state
-  stateMachine->doStateTransition();
+  // stateMachine->doStateTransition();
 }
 
 // update direction the agent is facing based on the state
 void Agent::updateDirection() {
+  return;
   switch (stateMachine->getCurrentState()) {
     case AgentStateMachine::AgentState::StateWalking:
       if (v.length() > 0.001) {
@@ -1167,6 +1173,8 @@ Ped::Tvector Agent::getMyForce() const { return myforce; }
 Ped::Tvector Agent::getKeepDistanceForce() const { return keepdistanceforce; }
 
 Ped::Tvector Agent::getRobotForce() const { return robotforce; }
+
+Ped::Tvector Agent::getSumForce() const { return robotforce; }
 
 QPointF Agent::getVisiblePosition() const { return QPointF(getx(), gety()); }
 

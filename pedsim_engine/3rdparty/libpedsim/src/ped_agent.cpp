@@ -338,6 +338,7 @@ Ped::Tvector Ped::Tagent::myForce(Ped::Tvector e)
 
 void Ped::Tagent::computeForces()
 {
+
   // update neighbors
   // NOTE - have a config value for the neighbor range
   const double neighborhoodRange = 10.0;
@@ -352,10 +353,8 @@ void Ped::Tagent::computeForces()
   robotforce = robotForce();
   keepdistanceforce = keepDistanceForce();
   myforce = myForce(desiredDirection);
-}
 
-const Ped::Tvector Ped::Tagent::getForce() const{
-  return Ped::Tvector(
+  sumforce = Ped::Tvector(
     forceFactorDesired * desiredforce +
     forceFactorSocial * socialforce +
     forceFactorObstacle * obstacleforce +
@@ -363,6 +362,10 @@ const Ped::Tvector Ped::Tagent::getForce() const{
     keepdistanceforce +
     forceFactorRobot * robotforce
   );
+}
+
+const Ped::Tvector Ped::Tagent::getForce() const{
+  return isForceOverridden ? forceOverride : sumforce;
 }
 
 /// Does the agent dynamics stuff. Calls the methods to calculate the individual
@@ -376,13 +379,8 @@ void Ped::Tagent::move(double stepSizeIn)
 {
   still_time += stepSizeIn;
 
-  if(isForceOverridden){
-    a = forceOverride;
-  }
-  else{
-    // sum of all forces --> acceleration
-    a = getForce();
-  }
+  // sum of all forces --> acceleration
+  a = getForce();
 
   // if (id == 1) {
   //   ROS_INFO("desiredforce: %lf, %lf, %lf", desiredforce.x, desiredforce.y, desiredforce.z);

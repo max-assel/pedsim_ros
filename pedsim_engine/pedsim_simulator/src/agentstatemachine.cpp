@@ -73,6 +73,7 @@ void AgentStateMachine::loseAttraction() {
 
 void AgentStateMachine::doStateTransition() {
   // determine new state
+  return;
   if (agent->getType() == Ped::Tagent::AgentType::VEHICLE)
   {
     // ## Forklift behavior ##
@@ -621,7 +622,7 @@ void AgentStateMachine::activateState(AgentState stateIn) {
   deactivateState(state);
 
   // re-activate all forces
-  agent->enableAllForces();
+  
 
   // set state
   state = stateIn;
@@ -1110,3 +1111,8 @@ QString AgentStateMachine::stateToName(AgentState stateIn) {
 AgentStateMachine::AgentState AgentStateMachine::getCurrentState() {
   return state;
 }
+
+void AgentStateMachine::setCurrentState(AgentState state_) {
+  state = state_;
+}
+

@@ -1,5 +1,8 @@
 import sismic.model
 import sismic.io
+import sismic.interpreter
+
+import dynamic_reconfigure.client
 
 import typing
 import enum
@@ -25,7 +28,7 @@ class Range(typing.NamedTuple):
 class StatechartProvider:
     @classmethod
     def load(cls, filepath: str):
-        def wrapper(inner: typing.Type[StatechartProvider]):
+        def wrapper(inner: typing.Type[Pedestrian]):
             class Wrapped(inner):
                 __statechart: sismic.model.Statechart
 
@@ -47,28 +50,44 @@ class StatechartProvider:
 
 class Pedestrian(StatechartProvider):
 
-    config: typing.Dict
-    runtime: typing.Dict
-    animation: str
+    _config: typing.Dict
+    _runtime: typing.Dict
+    animation: int
 
     def __init__(self, id: str, config: typing.Dict):
 
-        self.config = dict()
+        self._config = dict()
 
-        self.runtime = dict(
+        self._runtime = dict(
             id = id,
-            f = float(rospy.get_param("pedsim_update_rate")),
-            dt = 1 / float(rospy.get_param("pedsim_update_rate")),
+            f = float(rospy.get_param("pedsim_simulator/update_rate")),
+            dt = 1 / float(rospy.get_param("pedsim_simulator/update_rate")),
             rng = np.random.default_rng(None)
         )
 
-        self.animation = "idle"
+        #dynamic_reconfigure.client.Client("")
+
+        self.animation = 0
+
+    def setup(self) -> "Pedestrian":
+        self._statemachine = sismic.interpreter.Interpreter(
+            self.statechart,
+            initial_context=dict(
+                config = self._config,
+                runtime = self._runtime,
+            )
+        )
+        self._statemachine.bind(self.event_handler)
+        return self
 
     def event_handler(self, event: sismic.model.Event):
         if event.name == "animation":
-            self.animation = str(event.data)
+            self.animation = str(event.data.get("animation"))
         else:
             pass
 
     def tick(self, data: typing.Any):
-        ...
+        for event in ["tick"]:
+            self._statemachine.queue(event).execute_once()
+
+from .main import PedsimStates #noqa

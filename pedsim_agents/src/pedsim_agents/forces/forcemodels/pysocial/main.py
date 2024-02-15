@@ -1,16 +1,16 @@
-from pedsim_agents.pedsim_forces import FeedbackData, PedsimForcemodel, ForcemodelName, Forcemodel
-from pedsim_agents.utils import InputData, FeedbackDatum
+from pedsim_agents.forces import Forcemodel, Forcemodels
+from pedsim_agents.utils import InData
 
 import pedsim_msgs.msg
 
 import numpy as np
 from pathlib import Path
-from typing import Dict, List, Optional, Type, TypeVar
+from typing import List
 import random
 import rospy
 
 
-@PedsimForcemodel.register(ForcemodelName.PYSOCIAL)
+@Forcemodels.register(Forcemodel.Name.PYSOCIAL)
 class Plugin_PySocialForce(Forcemodel):
     FACTOR = 0.3
     GROUP_DEST_DIST = 0.5
@@ -90,21 +90,7 @@ class Plugin_PySocialForce(Forcemodel):
         
         return state, idx_assignment
     
-    @staticmethod
-    def map_force_to_feedback(agents: List[pedsim_msgs.msg.AgentState],
-                              force: np.ndarray
-                              ) -> List[FeedbackDatum]:
-        feedbacks = list()
-        for i in range(force.shape[0]):
-            feedback = pedsim_msgs.msg.AgentFeedback()
-            feedback.id = agents[i].id
-            feedback.force.x = force[i, 0]
-            feedback.force.y = force[i, 1]
 
-            feedbacks.append(FeedbackDatum(feedback))
-        
-        return feedbacks
-    
     @staticmethod
     def extract_obstacles(obstacles: List[pedsim_msgs.msg.Wall]
                           ) -> List[List[int]]:
@@ -121,14 +107,14 @@ class Plugin_PySocialForce(Forcemodel):
         return obs_list
 
 
-    def callback(self, data: InputData) -> FeedbackData:
-        if len(data.agents) < 1:
-            return list()
+    def compute(self, in_data, work_data):
+        if len(in_data.agents) < 1:
+            return
         
-        state, agent_idx = self.get_state_data(data.agents, data.groups)
-        groups = self.assign_groups(agent_idx, data.groups)
+        state, agent_idx = self.get_state_data(in_data.agents, in_data.groups)
+        groups = self.assign_groups(agent_idx, in_data.groups)
         state = self.overwrite_group_dest(state, groups)
-        obs = self.extract_obstacles(data.line_obstacles)
+        obs = self.extract_obstacles(in_data.walls)
 
         rospy.logdebug("Assigned Groups: " + groups.__str__())
 
@@ -141,4 +127,4 @@ class Plugin_PySocialForce(Forcemodel):
 
         forces = self.FACTOR * simulator.compute_forces()
 
-        return self.map_force_to_feedback(data.agents, forces)
+        work_data.force[:,[0,1]] = forces

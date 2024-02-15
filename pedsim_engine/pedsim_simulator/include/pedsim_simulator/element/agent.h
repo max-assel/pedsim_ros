@@ -89,6 +89,7 @@ class Agent : public ScenarioElement, public Ped::Tagent {
 
  public:
   // → Ped::Tagent Overrides/Overloads
+  void overrideState(AgentStateMachine::AgentState state_);
   void updateState();
   void updateDirection();
   double normalizeAngle(double angle_in);
@@ -140,6 +141,7 @@ class Agent : public ScenarioElement, public Ped::Tagent {
   Ped::Tvector getMyForce() const;
   Ped::Tvector getKeepDistanceForce() const;
   Ped::Tvector getRobotForce() const;
+  Ped::Tvector getSumForce() const;
   QList<const Agent*> getNeighbors() const;
   std::vector<Agent*> getAgentsInRange(double distance);
   QList<const Agent*> getPotentialListeners(double distance);

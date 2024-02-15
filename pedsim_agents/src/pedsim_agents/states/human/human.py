@@ -1,23 +1,27 @@
 import enum
+import os
 from typing import Dict
 
 from .. import Pedestrian, StatechartProvider
 
-@StatechartProvider.load("human.yaml")
+import pedsim_msgs.msg as pedsim_msgs
+
+@StatechartProvider.load(os.path.join(os.path.dirname(__file__), "human.yaml"))
 class Human(Pedestrian):
 
     class Animation(str, enum.Enum):
-        IDLE = "idle"
-        WALKING = "walking"
-        RUNNING = "running"
-        INTERACTING = "interacting"
-        TALKING = "talking"
-        PHONE = "phone"
+        IDLE        = pedsim_msgs.AgentState.IDLE
+        WALKING     = pedsim_msgs.AgentState.WALKING
+        RUNNING     = pedsim_msgs.AgentState.RUNNING
+        INTERACTING = pedsim_msgs.AgentState.INTERACTING
+        TALKING     = pedsim_msgs.AgentState.TALKING
+        PHONE       = pedsim_msgs.AgentState.PHONE
 
     def __init__(self, id: str, config: Dict):
         super().__init__(id, config)
 
-        self.config = dict(
+        self._config = dict(
+            **self._config,
 
             min_time_in_state = 2.0, # seconds
 
@@ -76,7 +80,7 @@ class Human(Pedestrian):
         )
 
     def event_handler(self, event):
-        if event.name == "":
-            pass
+        if event.name == "animation":
+            self.animation = self.Animation[event.data["animation"]].value
         else:
             super().event_handler(event)

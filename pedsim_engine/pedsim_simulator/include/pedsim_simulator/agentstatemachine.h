@@ -98,6 +98,7 @@ class AgentStateMachine : public QObject {
  public:
   void doStateTransition();
   AgentState getCurrentState();
+  void setCurrentState(AgentState state_);
   void activateState(AgentState stateIn);
   static QString stateToName(AgentState stateIn);
 
