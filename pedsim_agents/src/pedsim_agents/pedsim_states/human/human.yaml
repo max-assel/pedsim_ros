@@ -1,0 +1,137 @@
+statechart:
+  name: Human
+  description: |
+    ...
+
+  preamble: |
+    stress = config.stress_init
+    energy = config.energy_init
+    social = config.social_init
+
+    time_in_state = 0
+    min_time_in_state = config.min_time_in_state / runtime.dt
+
+  root state:
+    name: root
+    parallel states:
+      - name: drift
+        on entry: |
+          stress = max(config.stress_min, min(config.stress_max, stress))
+              energy = max(config.energy_min, min(config.energy_max, energy))
+              social = max(config.social_min, min(config.social_max, social))
+
+        transitions:
+          - target: drift
+            action: |
+              time_in_state += 1
+              stress        += runtime.dt * config.d_stress
+              energy        += runtime.dt * config.d_energy 
+              social        += runtime.dt * config.d_social
+
+              energy_lo = energy <= config.energy_lo
+              energy_hi = energy >= config.energy_hi
+              stress_lo = stress <= config.stress_lo
+              stress_hi = stress >= config.stress_hi
+              social_lo = social <= config.social_lo
+              social_hi = social >= config.social_hi
+
+      - name: animation
+        initial: rest
+        states:
+          - name: rest
+            transitions:
+            
+            - target: phone
+              guard: (runtime.rng.random() > (1 - max(0, config.social_hi-social) ** runtime.dt))
+            
+            - target: running
+              guard: (runtime.rng.random() > (1 - max(0, config.energy_hi-energy) ** runtime.dt))
+
+            - target: talking
+              event: some1
+              guard: not social_lo
+
+            - target: interacting
+              event: some2
+              guard: not energy_lo
+
+            states:
+              - name: history
+                type: shallow history
+                memory: walking
+              - name: idle
+                on entry: |
+                  time_in_state = 0
+                  send("animation", "idle")
+                transitions:
+                  - event: tick
+                    action: |
+                      stress        += runtime.dt * config.idle_d_stress
+                      energy        += runtime.dt * config.idle_d_energy 
+                      social        += runtime.dt * config.idle_d_social
+              - name: walking
+                on entry: |
+                  time_in_state = 0
+                  send("animation", "walking")
+                transitions:
+                  - event: tick
+                    action: |
+                      stress        += runtime.dt * config.walking_d_stress
+                      energy        += runtime.dt * config.walking_d_energy 
+                      social        += runtime.dt * config.walking_d_social
+
+          - name: energy_activity
+            transitions:
+              - target: rest
+                guard: energy_lo
+
+            states:
+              - name: running
+                on entry: |
+                  time_in_state = 0
+                  send("animation", "running")
+                transitions:
+                  - event: tick
+                    action: |
+                      stress        += runtime.dt * config.running_d_stress
+                      energy        += runtime.dt * config.running_d_energy 
+                      social += runtime.dt * config.running_d_social
+
+              - name: interacting
+                on entry: |
+                  time_in_state = 0
+                  send("animation", "interacting")
+                transitions:
+                  - event: tick
+                    action: |
+                      stress        += runtime.dt * config.interacting_d_stress
+                      energy        += runtime.dt * config.interacting_d_energy 
+                      social        += runtime.dt * config.interacting_d_social
+
+          - name: social_activity
+            transitions:
+              - target: rest
+                guard: social_lo
+
+            states:
+              - name: talking
+                on entry: |
+                  time_in_state = 0
+                  send("animation", "talking")
+                transitions:
+                  - event: tick
+                    action: |
+                      stress        += runtime.dt * config.talking_d_stress
+                      energy        += runtime.dt * config.talking_d_energy 
+                      social += runtime.dt * config.talking_d_social
+
+              - name: phone
+                on entry: |
+                  time_in_state = 0
+                  send("animation", "phone")
+                transitions:
+                  - event: tick
+                    action: |
+                      stress        += runtime.dt * config.phone_d_stress
+                      energy        += runtime.dt * config.phone_d_energy 
+                      social += runtime.dt * config.phone_d_social
