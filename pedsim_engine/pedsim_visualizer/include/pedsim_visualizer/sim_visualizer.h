@@ -38,6 +38,7 @@
 #include <functional>
 #include <memory>
 #include <queue>
+#include <map>
 
 #include <pedsim_msgs/AgentForce.h>
 #include <pedsim_msgs/AgentGroup.h>
@@ -74,6 +75,26 @@
 #include <pedsim_visualizer/PedsimVisualizerConfig.h>
 
 namespace pedsim {
+
+enum class WallLayer{
+  UNSET = 0,
+  WORLD,
+  OBSTACLE
+};
+static const char* WallLayerString(WallLayer layer){
+  switch(layer){
+
+    case WallLayer::OBSTACLE:
+      return "obstacle";
+
+    case WallLayer::WORLD:
+      return "world";
+
+    case WallLayer::UNSET:
+    default:
+      return "???";
+  }
+}
 
 class SimVisualizer {
  public:
@@ -124,6 +145,9 @@ class SimVisualizer {
   pedsim_msgs::AgentGroupsPtr q_groups_;
   pedsim_msgs::WallsPtr q_walls_;
   pedsim_msgs::WaypointsPtr q_waypoints_;
+
+  /// Wall Layers.
+  std::map<WallLayer, visualization_msgs::Marker> layers_;
 };
 }  // namespace pedsim
 

@@ -31,26 +31,6 @@
 #include <pedsim_visualizer/sim_visualizer.h>
 #include <pedsim_utils/geometry.h>
 
-enum class WallLayer{
-  UNSET = 0,
-  WORLD,
-  OBSTACLE
-};
-static const char* WallLayerString(WallLayer layer){
-  switch(layer){
-
-    case WallLayer::OBSTACLE:
-      return "obstacle";
-
-    case WallLayer::WORLD:
-      return "world";
-
-    case WallLayer::UNSET:
-    default:
-      return "???";
-  }
-}
-
 
 namespace pedsim
 {
@@ -256,28 +236,19 @@ namespace pedsim
 
     const auto current_walls = q_walls_;
 
-    std::vector<visualization_msgs::Marker> layers;
-
     for (const auto &wall : current_walls->walls)
     {
-      if(layers.size() <= wall.layer){
-        layers.resize(wall.layer+1);
-      }
 
-      if(wall.start.x != wall.end.x || wall.start.y != wall.end.y){
-        layers.at(wall.layer).points.push_back(wall.start);
-        layers.at(wall.layer).points.push_back(wall.end);
-      }
-    }
+      WallLayer layer = (WallLayer) wall.layer;
+      bool exists = layers_.find(layer) != layers_.end();
 
-    for(size_t layer = 0; layer < layers.size(); layer++){
+      auto &walls_marker = layers_[layer];
 
-      auto walls_marker = layers.at(layer);
-
-      if(walls_marker.points.size()){
-        walls_marker.header = current_walls->header;
-        walls_marker.ns = WallLayerString((WallLayer) layer);
+      if(!exists){
+        walls_marker.action = visualization_msgs::Marker::MODIFY;
         walls_marker.id = 0;
+        walls_marker.ns = std::string(WallLayerString(layer));
+        walls_marker.type = visualization_msgs::Marker::LINE_LIST;
         walls_marker.color.a = 1.0;
         walls_marker.color.r = 0.647059;
         walls_marker.color.g = 0.164706;
@@ -285,11 +256,24 @@ namespace pedsim
         walls_marker.scale.x = 0.1;
         walls_marker.pose.position.z = -0.01; //laserscan always on top
         walls_marker.pose.orientation.w = 1.0;
-        walls_marker.type = visualization_msgs::Marker::LINE_LIST;
-
-        pub_walls_visuals_.publish(walls_marker);
       }
+
+      if(wall.start.x != wall.end.x || wall.start.y != wall.end.y){
+        walls_marker.points.push_back(wall.start);
+        walls_marker.points.push_back(wall.end);
+      }
+    }
+
+    for(auto &layer_pair : layers_){
+
+      // auto &layer = layer_pair.first;
+      auto &walls_marker = layer_pair.second;
+
+      walls_marker.header = current_walls->header;
       
+      pub_walls_visuals_.publish(walls_marker);
+
+      walls_marker.points.clear();
     }
     
     q_walls_.reset();
