@@ -46,18 +46,16 @@ class WorkData:
         
         for i, agent in enumerate(in_data.agents):
             data.id.append(agent.id)
-            data.force[i] = agent.forces.force.x, agent.forces.force.y, agent.forces.force.z
-            data.social_state[i] = 0
+            data.force[i] = agent.forces.sum_force.x, agent.forces.sum_force.y, agent.forces.sum_force.z
+            data.social_state.append(agent.social_state)
 
         return data
-
-    agents: np.recarray
 
     # _storage: np.ndarray
 
     id: list
     force: np.ndarray
-    social_state: np.ndarray
+    social_state: list
 
     def __init__(self, n_agents: int):
         self.id = list()
@@ -66,7 +64,7 @@ class WorkData:
         # self.social_state = self._storage[:,3]
 
         self.force = np.zeros((n_agents, 3), dtype=np.double)
-        self.social_state = np.zeros((n_agents,), dtype=np.uint8)
+        self.social_state = list()
 
     def msg(self, header: typing.Optional[std_msgs.Header] = None) -> OutMsg:
 
@@ -75,10 +73,10 @@ class WorkData:
                 pedsim_msgs.AgentFeedback(
                     id = id,
                     force = geometry_msgs.Vector3(*force),
-                    social_state = 1
+                    social_state = social_state
                 )
                 for id, force, social_state
-                in zip(self.id, self.force.tolist(), self.social_state.tolist())
+                in zip(self.id, self.force.tolist(), self.social_state)
             ],
             **(dict(header=header) if header is not None else dict())
         ))

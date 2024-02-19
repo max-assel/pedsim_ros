@@ -308,19 +308,25 @@ Ped::Twaypoint* Agent::updateDestination() {
   return currentDestination;
 }
 
-void Agent::overrideState(AgentStateMachine::AgentState state_) {
-  stateMachine->setCurrentState(state_);
-  resumeMovement();
+std::string Agent::getSocialState() {
+  if(isSocialStateOverriden)
+    return socialStateOverride;
+
+  return AgentStateMachine::stateToName(stateMachine->getCurrentState()).toStdString();
+}
+
+void Agent::overrideSocialState(std::string state_) {
+  isSocialStateOverriden = true;
+  socialStateOverride = state_;
 }
 
 void Agent::updateState() {
   // check state
-  // stateMachine->doStateTransition();
+  stateMachine->doStateTransition();
 }
 
 // update direction the agent is facing based on the state
 void Agent::updateDirection() {
-  return;
   switch (stateMachine->getCurrentState()) {
     case AgentStateMachine::AgentState::StateWalking:
       if (v.length() > 0.001) {

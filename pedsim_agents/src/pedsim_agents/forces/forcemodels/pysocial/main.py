@@ -84,6 +84,7 @@ class Plugin_PySocialForce(Forcemodel):
             v_y = agent.twist.linear.y
             d_x = agent.destination.x
             d_y = agent.destination.y
+
             state_data.append([p_x, p_y, v_x, v_y, d_x, d_y])
             idx_assignment[agent.id] = idx
         state = np.array(state_data)
@@ -128,3 +129,4 @@ class Plugin_PySocialForce(Forcemodel):
         forces = self.FACTOR * simulator.compute_forces()
 
         work_data.force[:,[0,1]] = forces
+        work_data.force[np.isnan(work_data.force)] = 0

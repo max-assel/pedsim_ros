@@ -57,7 +57,7 @@ class Plugin_DSF(Forcemodel):
 
         feedbacks = []
 
-        work_data.agents[:,"force"][[0,1]] = next_state[:,[4,5]]
+        work_data.force[[0,1]] = next_state[:,[4,5]]
 
         # for i, agent_id in enumerate(agent_ids):
         #     state = next_state[i]

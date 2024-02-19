@@ -392,8 +392,7 @@ pedsim_msgs::AgentStates Simulator::getAgentStates()
     state.twist.linear.y = a->getvy();
     state.twist.linear.z = a->getvz();
 
-    AgentStateMachine::AgentState sc = a->getStateMachine()->getCurrentState();
-    state.social_state = agentStateToActivity(sc);
+    state.social_state = SCENE.getAgent(a->id)->getSocialState();
 
     // Forces.
     pedsim_msgs::AgentForce agent_forces;
@@ -616,7 +615,7 @@ void Simulator::onPedsimAgents(pedsim_msgs::AgentFeedbacks agents){
     Agent* sceneAgent = SCENE.getAgent(agent.id);
     if(!sceneAgent) continue;
 
-    sceneAgent->overrideState((AgentStateMachine::AgentState) agent.social_state);
+    sceneAgent->overrideSocialState(agent.social_state);
 
     sceneAgent->overrideForce(
       Ped::Tvector(

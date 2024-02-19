@@ -89,7 +89,8 @@ class Agent : public ScenarioElement, public Ped::Tagent {
 
  public:
   // → Ped::Tagent Overrides/Overloads
-  void overrideState(AgentStateMachine::AgentState state_);
+  void overrideSocialState(std::string state);
+  std::string getSocialState();
   void updateState();
   void updateDirection();
   double normalizeAngle(double angle_in);
@@ -211,6 +212,10 @@ class Agent : public ScenarioElement, public Ped::Tagent {
   double angleTarget;
   double timeStepSize;  // step size used for special moves
   std::vector<AgentPoseStamped> moveList;  // move list used for special moves
+
+
+  bool isSocialStateOverriden;
+  std::string socialStateOverride;
 
   AgentStateMachine* stateMachine;
 

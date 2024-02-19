@@ -57,5 +57,5 @@ class Plugin_Evacuation(Forcemodel):
         y, agents_escaped, forces = method(y[:, :, 0], v[:, :, 0], diff_equ.f, num_steps, tau, room)
         # forces is of shape (2, N, 2)
 
-        work_data.agents[:,["F_x", "F_y"]] = forces[[0,1],:,0]
+        work_data.force[:,[0,1]] = forces[[0,1],:,0].T
 
