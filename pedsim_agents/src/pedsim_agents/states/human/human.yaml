@@ -25,6 +25,8 @@ statechart:
         states:
           - name: rest
             initial: walking
+            on entry: |
+              action: send("seek", id=None)
             transitions:
             
             - target: phone
@@ -37,13 +39,15 @@ statechart:
 
             - target: talking
               priority: 1
-              event: some1
+              event: agent
               guard: state["social"] >= config["social_hi"]
+              action: send("seek", id=event.id)
 
             - target: interacting
               priority: 2
-              event: some2
+              event: obstacle
               guard: state["energy"] >= config["energy_hi"]
+              action: send("seek", id=event.id)
 
             states:
 
@@ -72,6 +76,8 @@ statechart:
             transitions:
               - target: rest
                 guard: state["energy"] <= config["energy_lo"]
+              - target: rest
+                event: lost
 
             states:
               - name: running
@@ -100,6 +106,9 @@ statechart:
             transitions:
               - target: rest
                 guard: state["social"] <= config["social_lo"]
+                action: send("seek", id=None)
+              - target: rest
+                event: lost
 
             states:
               - name: talking

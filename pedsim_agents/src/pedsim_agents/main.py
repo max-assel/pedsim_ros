@@ -51,11 +51,9 @@ def main():
         forcemodel.run(input_data, work_data)
         states.post(input_data, work_data)
 
-        semantic_data = semantic.calculate(input_data, work_data)
+        semantic_data = semantic.calculate(input_data, work_data, states.semantic())
 
         pub.publish(work_data.msg(input_msg.header))
-
-
         semantic.publish(input_msg.header.stamp, semantic_data)
     
 
@@ -68,7 +66,6 @@ def main():
 
         states.reset()
         forcemodel.reset()
-        # postfx.reset()
         semantic.reset()
 
         sub = rospy.Subscriber(

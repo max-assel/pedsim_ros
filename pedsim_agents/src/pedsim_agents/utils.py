@@ -14,6 +14,9 @@ T = TypeVar("T")
 def NList(l: Optional[List[T]]) -> List[T]:
     return [] if l is None else l
 
+def msg_to_vec(msg: typing.Union[geometry_msgs.Point, geometry_msgs.Vector3]) -> np.ndarray:
+    return np.array([msg.x, msg.y, msg.z])
+
 # INPUT
 
 InMsg = pedsim_msgs.PedsimAgentsDataframe
@@ -99,6 +102,10 @@ class SemanticAttribute(enum.Enum):
     PEDESTRIAN_VEL_X = "pedestrian_vel_x"
     PEDESTRIAN_VEL_Y = "pedestrian_vel_y"
     PEDESTRIAN_TYPE = "pedestrian_type"
+
+    STATE_STRESS = "stress"
+    STATE_ENERGY = "energy"
+    STATE_SOCIAL = "social"
 
 SemanticData = Dict[SemanticAttribute, List[Tuple[geometry_msgs.Point, float]]]
 SemanticMsg = pedsim_msgs.SemanticData
