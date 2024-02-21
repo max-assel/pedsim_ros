@@ -130,6 +130,7 @@ class LIBEXPORT Tagent {
   double forceFactorSocial;
   double forceFactorObstacle;
   double forceFactorRobot;
+  std::string configuration;
 
   void overrideForce();
   void overrideForce(Ped::Tvector pose);

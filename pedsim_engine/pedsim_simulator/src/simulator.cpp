@@ -431,6 +431,8 @@ pedsim_msgs::AgentStates Simulator::getAgentStates()
     }
     state.direction = a->facingDirection;
 
+    state.configuration = a->configuration;
+
     all_status.agent_states.push_back(state);
     // ROS_WARN("publish agent states %d,%lf, typeID,%d",state.id,state.twist.linear.x,state.type);
   }

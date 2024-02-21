@@ -1,5 +1,6 @@
 
 
+import json
 import typing
 from pedsim_agents.states import Agent
 from pedsim_agents.states.human.adult.adult import Adult
@@ -33,7 +34,7 @@ class PedsimStates:
     def pre(self, in_data: InData, work_data: WorkData):
         for i, ped in enumerate(in_data.agents):
             if ped.id not in self._agents:
-                self._agents[ped.id] = _get_agent_class(ped.type)(ped.id).setup(dict()) #todo put config here
+                self._agents[ped.id] = _get_agent_class(ped.type)(ped.id).setup(json.loads(ped.configuration))
             machine = self._agents[ped.id]
             
             machine.pre(in_data, work_data, i)
