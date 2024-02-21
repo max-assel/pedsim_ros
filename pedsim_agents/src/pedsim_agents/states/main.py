@@ -7,6 +7,18 @@ from pedsim_agents.states.human.adult.elder import Elder
 from pedsim_agents.utils import InData, WorkData
 import pedsim_msgs.msg as pedsim_msgs
 
+#TODO rework this using a registry and class method chaining
+def _get_agent_class(agent_type: str) -> typing.Type[Agent]:
+    if agent_type == "human/adult": return Adult
+    if agent_type == "human/elder": return Elder
+    return Adult
+
+def _agent_to_index(agent_type: str) -> int:
+    if agent_type == "human/adult": return 0
+    if agent_type == "human/elder": return 1
+    return -1
+
+
 class PedsimStates:
 
     _agents: typing.Dict[str, Agent]
@@ -21,7 +33,7 @@ class PedsimStates:
     def pre(self, in_data: InData, work_data: WorkData):
         for i, ped in enumerate(in_data.agents):
             if ped.id not in self._agents:
-                self._agents[ped.id] = Elder(ped.id).setup(dict()) #todo put config here
+                self._agents[ped.id] = _get_agent_class(ped.type)(ped.id).setup(dict()) #todo put config here
             machine = self._agents[ped.id]
             
             machine.pre(in_data, work_data, i)

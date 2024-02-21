@@ -9,8 +9,8 @@ import rospy
 import pedsim_msgs.msg
 
 from pedsim_agents.config import Topics
-from pedsim_agents.utils import InData, WorkData, OutDatum, SemanticMsg, SemanticData, SemanticAttribute, PedType
-
+from pedsim_agents.utils import InData, WorkData, SemanticMsg, SemanticData, SemanticAttribute
+from pedsim_agents.states.main import _agent_to_index
 
 class SemanticProcessor:
 
@@ -30,7 +30,7 @@ class SemanticProcessor:
         for attribute in SemanticAttribute:
             semantic_data[attribute] = []
 
-        def get_attributes(state: pedsim_msgs.msg.AgentState, force: np.ndarray, social_state: str) -> List[Tuple[SemanticAttribute, float]]:
+        def get_attributes(agent_state: pedsim_msgs.msg.AgentState, force: np.ndarray, social_state: str) -> List[Tuple[SemanticAttribute, float]]:
             attributes: List[Tuple[SemanticAttribute, float]] = []
 
             attributes.append((SemanticAttribute.IS_PEDESTRIAN, 1))
@@ -41,7 +41,7 @@ class SemanticProcessor:
             attributes.append((SemanticAttribute.PEDESTRIAN_VEL_X, float(force[0])))
             attributes.append((SemanticAttribute.PEDESTRIAN_VEL_Y, float(force[1])))
 
-            attributes.append((SemanticAttribute.PEDESTRIAN_TYPE, PedType[str(state.type)].value))
+            attributes.append((SemanticAttribute.PEDESTRIAN_TYPE, _agent_to_index(agent_state.type)))
 
             return attributes
         

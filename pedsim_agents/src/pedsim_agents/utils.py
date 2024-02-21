@@ -144,11 +144,6 @@ class WorkData:
 # SEMANTIC 
 
 @enum.unique
-class PedType(enum.IntEnum):
-    NONE = 0
-    adult = enum.auto()
-
-@enum.unique
 class SemanticAttribute(enum.Enum):
     IS_PEDESTRIAN = "pedestrian"
     IS_PEDESTRIAN_MOVING = "pedestrian_moving"

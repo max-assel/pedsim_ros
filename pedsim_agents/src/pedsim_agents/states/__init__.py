@@ -58,6 +58,7 @@ class Agent(StatechartProvider):
     _animation: str
     _destination: typing.Optional[typing.Tuple[float, float, float]]
 
+    #TODO move vmax randomization here (from pedsim_engine)
     _random_config = utils.RandomConfig()
 
     def __init__(self, id: str):
