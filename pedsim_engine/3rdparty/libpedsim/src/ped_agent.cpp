@@ -406,10 +406,10 @@ void Ped::Tagent::move(double stepSizeIn)
     // ROS_WARN("update velocity %lf,%lf", v.x,v.y);
   }
 
-  // don't exceed maximal speed
+  // don't exceed maximal speed, otherwise reduce to geometric mean for smoothness
   double speed = v.length();
-  if (speed > vmax)
-    v = v.normalized() * vmax;
+  if (speed > getVmax())
+    v = v.normalized() * sqrt(vmax * speed);
 
   // internal position update = actual move
   p += stepSizeIn * v;
@@ -425,4 +425,8 @@ void Ped::Tagent::overrideForce(){
 void Ped::Tagent::overrideForce(Ped::Tvector force){
   forceOverride = force;
   isForceOverridden = true;
+}
+
+void Ped::Tagent::overrideVmax(double factor_){
+  factorVmax = factor_;
 }
