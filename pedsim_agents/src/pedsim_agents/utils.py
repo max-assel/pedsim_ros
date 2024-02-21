@@ -17,6 +17,59 @@ def NList(l: Optional[List[T]]) -> List[T]:
 def msg_to_vec(msg: typing.Union[geometry_msgs.Point, geometry_msgs.Vector3]) -> np.ndarray:
     return np.array([msg.x, msg.y, msg.z])
 
+class Dist:
+    def apply(self, modifier: typing.Optional[float] = None) -> "Dist": raise NotImplementedError()
+    def generate(self, modifier: typing.Optional[float] = None, rng: typing.Optional[np.random.Generator] = None) -> float: raise NotImplementedError()
+
+class ConstantDist(Dist):
+    _value: float
+    def __init__(self, value: float): self._value = value
+    def apply(self, modifier): return self
+    def generate(self, modifier, rng): return self._value
+
+class NormalDist(Dist):
+
+    _min: typing.Optional[float]
+    _max: typing.Optional[float]
+
+    _mean: float
+    _stdev: float
+
+    def __init__(self, mean: float, stdev: float, min_: typing.Optional[float] = None, max_: typing.Optional[float] = None):
+        self._min = min_
+        self._max = max_
+
+        self._mean = mean
+        self._stdev = stdev
+
+    def apply(self, modifier: typing.Optional[float]):
+        if modifier is None: modifier = 0
+        return NormalDist(
+            mean = self._mean + self._stdev * modifier,
+            stdev = self._stdev,
+            min_ = self._min,
+            max_ = self._max
+        )
+
+    def generate(self, modifier: typing.Optional[float], rng: typing.Optional[np.random.Generator]) -> float:
+        if rng is None: rng = np.random.default_rng()
+        if modifier is None: modifier = 0
+
+        value = (rng.standard_normal() + modifier) * self._stdev + self._mean
+        if self._min is not None: value = max(self._min, value)
+        if self._max is not None: value = min(self._max, value)
+        return value
+
+class RandomConfig(typing.Dict[str, Dist]):
+    def apply(self, entries: typing.Optional[typing.Dict[str, typing.Union[float, Dist]]] = None) -> "RandomConfig":
+        if entries is None: entries = dict()
+        return RandomConfig({k:v if isinstance(v, Dist) else v.apply(entries.get(k,0)) for k,v in self.items()})
+
+    def generate(self, entries: typing.Optional[typing.Dict[str, float]] = None, rng: typing.Optional[np.random.Generator] = None) -> typing.Dict[str, float]:
+        if entries is None: entries = dict()
+        if rng is None: rng = np.random.default_rng()
+        return {k:v.generate(entries.get(k,0), rng) for k,v in self.items()}
+
 # INPUT
 
 InMsg = pedsim_msgs.PedsimAgentsDataframe
@@ -81,7 +134,7 @@ class WorkData:
                     vmax = vmax
                 )
                 for id, force, social_state, vmax
-                in zip(self.id, self.force.tolist(), self.social_state, self.vmax.tolist())
+                in zip(self.id, self.force.tolist(), self.social_state, self.vmax.flat)
             ],
             **(dict(header=header) if header is not None else dict())
         ))

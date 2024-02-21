@@ -30,7 +30,7 @@ class Range(typing.NamedTuple):
 class StatechartProvider:
     @classmethod
     def load(cls, filepath: str):
-        def wrapper(inner: typing.Type[Pedestrian]):
+        def wrapper(inner: typing.Type[Agent]):
             class Wrapped(inner):
                 __statechart: sismic.model.Statechart
 
@@ -50,7 +50,7 @@ class StatechartProvider:
         raise NotImplementedError(f"{type(self).__name__} has no associated statechart")
 
 
-class Pedestrian(StatechartProvider):
+class Agent(StatechartProvider):
 
     _config: typing.Dict
     _runtime: typing.Dict
@@ -58,7 +58,9 @@ class Pedestrian(StatechartProvider):
     _animation: str
     _destination: typing.Optional[typing.Tuple[float, float, float]]
 
-    def __init__(self, id: str, config: typing.Dict):
+    _random_config = utils.RandomConfig()
+
+    def __init__(self, id: str):
 
         self._config = dict()
 
@@ -76,8 +78,11 @@ class Pedestrian(StatechartProvider):
         self._destination = None
         self._animation = ""
 
-    def setup(self, context: typing.Optional[typing.Dict] = None) -> "Pedestrian":
+    def setup(self, config: typing.Optional[typing.Dict[str, float]] = None, context: typing.Optional[typing.Dict] = None) -> "Agent":
+        if config is None: config = dict()
         if context is None: context = dict()
+
+        self._config = self._random_config.generate(config, self._runtime.get("rng"))
 
         self._statemachine = sismic.interpreter.Interpreter(
             self.statechart,

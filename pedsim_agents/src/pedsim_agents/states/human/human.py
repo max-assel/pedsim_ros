@@ -9,8 +9,10 @@ import numpy as np
 
 from pedsim_agents import utils
 
-from .. import Pedestrian, StatechartProvider
+from .. import Agent, StatechartProvider
 
+from pedsim_agents.utils import NormalDist as ND, ConstantDist as CD
+SND = lambda mean, stdev: ND(mean, stdev, 0, 1)
 
 class _States:
     STRESS = utils.SemanticAttribute.STATE_STRESS.value
@@ -18,11 +20,70 @@ class _States:
     SOCIAL = utils.SemanticAttribute.STATE_SOCIAL.value
 
 @StatechartProvider.load(os.path.join(os.path.dirname(__file__), "human.yaml"))
-class Human(Pedestrian):
+class Human(Agent):
 
     _tracked_agents: typing.Set[str]
     _tracked_obstacles: typing.Set[str]
     _seek: typing.Optional[str]
+
+    _random_config = utils.RandomConfig(
+        **Agent._random_config,
+
+        min_time_in_state = ND(2.0, 0.5, 1.0, None), # seconds
+
+        stress_lo = SND(0.20, 0.05),
+        stress_hi = SND(0.80, 0.05),
+
+        energy_lo = SND(0.20, 0.05),
+        energy_hi = SND(0.80, 0.05),
+
+        social_lo = SND(0.20, 0.05),
+        social_hi = SND(0.80, 0.05),
+
+        # drift
+        d_stress = ND(-0.01, 0.001, None, -0.001),
+        d_energy = ND(+0.01, 0.001, +0.001, None),
+        d_social = ND(+0.01, 0.001, +0.001, None),
+
+        # idle state [rest]
+        idle_d_stress = ND(-0.05, 0.001),
+        idle_d_energy = ND(+0.15, 0.001),
+        idle_d_social = ND(+0.05, 0.001),
+
+        # walking state [rest]
+        walking_d_stress = ND(+0.00, 0.001),
+        walking_d_energy = ND(+0.00, 0.001),
+        walking_d_social = ND(+0.00, 0.001),
+
+        # running state
+        running_d_stress = ND(+0.00, 0.01),
+        running_d_energy = ND(-0.05, 0.01),
+        running_d_social = ND(+0.00, 0.01),
+
+        # talking state
+        talking_d_stress = ND(+0.00, 0.01),
+        talking_d_energy = ND(+0.00, 0.01),
+        talking_d_social = ND(-0.05, 0.01),
+
+        # phone state
+        phone_d_stress = ND(+0.00, 0.01),
+        phone_d_energy = ND(+0.00, 0.01),
+        phone_d_social = ND(-0.05, 0.01),
+
+        # interacting state
+        interacting_d_stress = ND(+0.00, 0.01),
+        interacting_d_energy = ND(-0.05, 0.01),
+        interacting_d_social = ND(+0.05, 0.01),
+
+        # vision
+        vision_range = ND(5.0, 0.5, 0, None),
+        vision_angle = ND(45, 5, 0, 90),
+
+        # fears and norms
+        personal_space_radius = ND(1.0, 0.1, 0.5, None),
+        fear_robot = ND(+0.02, 0.001),
+        fear_robot_speed_tolerance = ND(0.7, 0.1, 0, None), #m/s = 2.5km/h
+    )
 
     class Animation(str, enum.Enum):
         IDLE        = "Idle"
@@ -32,70 +93,16 @@ class Human(Pedestrian):
         TALKING     = "Talking"
         PHONE       = "Phone"
 
-    def __init__(self, id: str, config: typing.Dict):
-        super().__init__(id, config)
+    def __init__(self, id: str):
+        super().__init__(id)
 
         self._tracked_agents = set()
         self._tracked_obstacles = set()
         self._seek = None
 
+        rng = self._runtime["rng"]
+
         self._config = dict(
-            **self._config,
-
-            min_time_in_state = 2.0, # seconds
-
-            stress_lo = 0.20,
-            stress_hi = 0.80,
-
-            energy_lo = 0.20,
-            energy_hi = 0.80,
-
-            social_lo = 0.20,
-            social_hi = 0.80,
-
-            # drift
-            d_stress = -0.01,
-            d_energy = +0.01,
-            d_social = +0.01,
-
-            # idle state [rest]
-            idle_d_stress = -0.05,
-            idle_d_energy = +0.15,
-            idle_d_social = +0.05,
-
-            # walking state [rest]
-            walking_d_stress = +0.00,
-            walking_d_energy = +0.00,
-            walking_d_social = +0.00,
-
-            # running state
-            running_d_stress = +0.00,
-            running_d_energy = -0.05,
-            running_d_social = +0.00,
-
-            # talking state
-            talking_d_stress = +0.00,
-            talking_d_energy = +0.00,
-            talking_d_social = -0.05,
-
-            # phone state
-            phone_d_stress = +0.00,
-            phone_d_energy = +0.00,
-            phone_d_social = -0.05,
-
-            # interacting state
-            interacting_d_stress = +0.00,
-            interacting_d_energy = -0.05,
-            interacting_d_social = +0.05,
-
-            # vision
-            vision_range = 5,
-            vision_angle = 45,
-
-            # fears and norms
-            personal_space_radius = 1.0,
-            fear_robot = +0.02,
-            fear_robot_speed_tolerance = 0.7, #m/s = 2.5km/h
         )
 
         class _State(dict):
@@ -156,7 +163,7 @@ class Human(Pedestrian):
                 i_see(
                     np.array([d_p(ag.pose.position) for ag in in_data.agents]).view(dtype=np.complex128)
                 )
-            )[0].tolist()
+            )[0].flat
             if a != i
         ) 
 
@@ -167,7 +174,7 @@ class Human(Pedestrian):
                 i_see(
                     np.array([d_p(obstacle.pose.position) for obstacle in in_data.obstacles]).view(dtype=np.complex128)
                 )
-            )[0].tolist()
+            )[0].flat
         ) 
 
         for added in seen_agents.difference(self._tracked_agents):
@@ -202,7 +209,7 @@ class Human(Pedestrian):
                 p_my *= self._config["personal_space_radius"]
                 p_my += p_seek
 
-                self._destination = p_my.tolist()
+                self._destination = p_my.flat
 
 
         super().pre(in_data, work_data, i, events=(*events, *new_events))

@@ -1,14 +1,15 @@
 
 
 import typing
-from pedsim_agents.states import Pedestrian
+from pedsim_agents.states import Agent
 from pedsim_agents.states.human.adult.adult import Adult
+from pedsim_agents.states.human.adult.elder import Elder
 from pedsim_agents.utils import InData, WorkData
 import pedsim_msgs.msg as pedsim_msgs
 
 class PedsimStates:
 
-    _agents: typing.Dict[str, Pedestrian]
+    _agents: typing.Dict[str, Agent]
 
 
     def __init__(self):
@@ -20,7 +21,7 @@ class PedsimStates:
     def pre(self, in_data: InData, work_data: WorkData):
         for i, ped in enumerate(in_data.agents):
             if ped.id not in self._agents:
-                self._agents[ped.id] = Adult(ped.id, dict()).setup()
+                self._agents[ped.id] = Elder(ped.id).setup(dict()) #todo put config here
             machine = self._agents[ped.id]
             
             machine.pre(in_data, work_data, i)
