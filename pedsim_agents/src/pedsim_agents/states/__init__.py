@@ -52,10 +52,13 @@ class StatechartProvider:
 
 class Agent(StatechartProvider):
 
+    MAGIC_NUMBER = 0x01
+
     _config: typing.Dict
     _runtime: typing.Dict
     _state: typing.Dict
     _animation: str
+    _social_state: int
     _destination: typing.Optional[typing.Tuple[float, float, float]]
 
     #TODO move vmax randomization here (from pedsim_engine)
@@ -124,6 +127,9 @@ class Agent(StatechartProvider):
             work_data.vmax[i] = 0.01
 
     def semantic(self) -> typing.Dict:
-        return {utils.SemanticAttribute(k):v for k,v in self._state.items()}
+        return {
+            **{utils.SemanticAttribute(k):v for k,v in self._state.items()},
+            utils.SemanticAttribute.SOCIAL_STATE: (self._social_state << 8) | self.MAGIC_NUMBER
+        }
 
 from .main import PedsimStates #noqa

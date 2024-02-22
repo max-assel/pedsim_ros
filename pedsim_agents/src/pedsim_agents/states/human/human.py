@@ -22,6 +22,8 @@ class _States:
 @StatechartProvider.load(os.path.join(os.path.dirname(__file__), "human.yaml"))
 class Human(Agent):
 
+    MAGIC_NUMBER = 0x01
+
     _tracked_agents: typing.Set[str]
     _tracked_obstacles: typing.Set[str]
     _seek: typing.Optional[str]
@@ -85,13 +87,13 @@ class Human(Agent):
         fear_robot_speed_tolerance = ND(0.7, 0.1, 0, None), #m/s = 2.5km/h
     )
 
-    class Animation(str, enum.Enum):
-        IDLE        = "Idle"
-        WALKING     = "Walking"
-        RUNNING     = "Running"
-        INTERACTING = "Interacting"
-        TALKING     = "Talking"
-        PHONE       = "Phone"
+    class Animation(int, enum.Enum):
+        IDLE        = enum.auto()
+        WALKING     = enum.auto()
+        RUNNING     = enum.auto()
+        INTERACTING = enum.auto()
+        TALKING     = enum.auto()
+        PHONE       = enum.auto()
 
     def __init__(self, id: str):
         super().__init__(id)
@@ -126,7 +128,8 @@ class Human(Agent):
 
     def event_handler(self, event):
         if event.name == "animation":
-            self._animation = self.Animation[event.data["animation"]].value
+            self._animation = self.Animation[event.data["animation"]].name
+            self._social_state = self.Animation[event.data["animation"]].value
         
         elif event.name == "seek":
             self._seek = event.data.get("id", None)

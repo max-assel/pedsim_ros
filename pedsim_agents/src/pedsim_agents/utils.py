@@ -151,6 +151,8 @@ class SemanticAttribute(enum.Enum):
     PEDESTRIAN_VEL_Y = "pedestrian_vel_y"
     PEDESTRIAN_TYPE = "pedestrian_type"
 
+    SOCIAL_STATE = "social_state"
+
     STATE_STRESS = "stress"
     STATE_ENERGY = "energy"
     STATE_SOCIAL = "social"

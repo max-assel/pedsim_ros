@@ -30,7 +30,7 @@ class SemanticProcessor:
         for attribute in SemanticAttribute:
             semantic_data[attribute] = []
 
-        def get_attributes(agent_state: pedsim_msgs.msg.AgentState, force: np.ndarray, social_state: str) -> List[Tuple[SemanticAttribute, float]]:
+        def get_attributes(agent_state: pedsim_msgs.msg.AgentState, force: np.ndarray) -> List[Tuple[SemanticAttribute, float]]:
             attributes: List[Tuple[SemanticAttribute, float]] = []
 
             attributes.append((SemanticAttribute.IS_PEDESTRIAN, 1))
@@ -45,8 +45,8 @@ class SemanticProcessor:
 
             return attributes
         
-        for in_, work_, social_state, state in zip(in_data.agents, work_data.force, work_data.social_state, states_data):
-            for attribute, intensity in get_attributes(in_, work_, social_state):
+        for in_, work_, state in zip(in_data.agents, work_data.force, states_data):
+            for attribute, intensity in get_attributes(in_, work_):
                 semantic_data[attribute].append((in_.pose.position, intensity))
 
             for state_attribute, state_value in state.items():
